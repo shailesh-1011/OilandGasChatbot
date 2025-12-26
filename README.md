@@ -181,7 +181,7 @@ cd /root/oilandgasChatBot && source venv/bin/activate && python scheduler.py --o
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Web search interface |
+| `/` (root) | GET | Web search interface |
 | `/search` | POST | Search (form data) |
 | `/api/search` | POST | Search (JSON API) |
 | `/api/stats` | GET | Article statistics |
