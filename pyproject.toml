@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "oil-gas-news-intelligence"
+version = "1.0.0"
+description = "Oil & Gas news scraper with NLP-powered search and classification"
+authors = []
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Web Framework
+flask = "^3.0"
+gunicorn = "^21.2"
+# Scraping
+pandas = "^2.0"
+beautifulsoup4 = "^4.12"
+requests = "^2.31"
+lxml = "^4.9"
+# NLP & Machine Learning
+sentence-transformers = "^2.2"
+scikit-learn = "^1.3"
+spacy = "^3.7"
+torch = "^2.1"
+numpy = "^1.24"
+# Class Balancing
+imbalanced-learn = "^0.11"
+# Scheduling
+schedule = "^1.2"

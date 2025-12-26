@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Oil & Gas News Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-info {
+            font-size: 14px;
+        }
+
+        .project-info h3 {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        .project-info p {
+            opacity: 0.8;
+            font-size: 12px;
+        }
+
+        .developer-info {
+            text-align: right;
+            font-size: 13px;
+            opacity: 0.95;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .developer-info a:hover {
+            text-decoration: underline;
+        }
+
+        /* Main Container - Google-style centered layout */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 150px);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .main-container.has-results {
+            justify-content: flex-start;
+            padding-top: 30px;
+            min-height: auto;
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .logo span {
+            color: #e94560;
+        }
+
+        .logo-small {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        /* Search Box */
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            padding: 10px 20px;
+            box-shadow: 0 1px 6px rgba(32,33,36,.28);
+            transition: box-shadow 0.3s;
+        }
+
+        .search-box:hover,
+        .search-box:focus-within {
+            box-shadow: 0 1px 6px rgba(32,33,36,.4);
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            padding: 8px;
+        }
+
+        .search-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #c73e54;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: #9aa0a6;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px 10px;
+            margin-right: 5px;
+            display: none;
+        }
+
+        .clear-btn:hover {
+            color: #5f6368;
+        }
+
+        .clear-btn.show {
+            display: block;
+        }
+
+        /* Example Queries */
+        .examples {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .examples p {
+            color: #5f6368;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .example-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .example-tag {
+            background: #e8eaed;
+            color: #3c4043;
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .example-tag:hover {
+            background: #dadce0;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e94560;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results */
+        .results-container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .no-results {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #1565c0;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #e94560;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .result-source {
+            font-size: 13px;
+            color: #1a0dab;
+            font-weight: 500;
+        }
+
+        .result-meta {
+            font-size: 12px;
+            color: #5f6368;
+        }
+
+        .recent-badge {
+            background: #4caf50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .result-relevance {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .boost-tag {
+            font-size: 10px;
+            color: #666;
+            font-weight: 400;
+        }
+
+        .direct-answer {
+            background: #e3f2fd;
+            border-radius: 6px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #1565c0;
+        }
+
+        .facts-list {
+            margin-bottom: 12px;
+        }
+
+        .facts-list h4 {
+            font-size: 13px;
+            color: #5f6368;
+            margin-bottom: 6px;
+        }
+
+        .facts-list ul {
+            list-style: none;
+            padding-left: 15px;
+        }
+
+        .facts-list li {
+            font-size: 14px;
+            color: #3c4043;
+            padding: 3px 0;
+        }
+
+        .facts-list li:before {
+            content: "• ";
+            color: #e94560;
+        }
+
+        .result-summary {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #3c4043;
+        }
+
+        .topic-badge {
+            display: inline-block;
+            background: #1a1a2e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #5f6368;
+            font-size: 12px;
+            margin-top: 40px;
+        }
+
+        /* Responsive - Mobile First */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+                padding: 12px 15px;
+            }
+
+            .developer-info {
+                text-align: center;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .main-container {
+                min-height: calc(100vh - 180px);
+                padding: 15px;
+            }
+
+            .search-container {
+                max-width: 100%;
+                margin-bottom: 20px;
+            }
+
+            .search-box {
+                padding: 8px 15px;
+            }
+
+            .search-input {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 6px;
+            }
+
+            .search-btn {
+                padding: 8px 18px;
+                font-size: 13px;
+            }
+
+            .example-tags {
+                gap: 6px;
+            }
+
+            .example-tag {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .result-card {
+                padding: 15px;
+                margin-bottom: 12px;
+            }
+
+            .result-header {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .direct-answer {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .footer {
+                padding: 15px 10px;
+                font-size: 11px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h3 {
+                font-size: 16px;
+            }
+
+            .developer-info {
+                font-size: 11px;
+            }
+
+            .search-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+
+            .clear-btn {
+                font-size: 16px;
+                padding: 3px 8px;
+            }
+
+            .example-tag {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            .result-source {
+                font-size: 11px;
+            }
+
+            .result-relevance {
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="project-info">
+            <a href="/" style="color: white; text-decoration: none;"><h3>Oil & Gas News Chatbot</h3></a>
+        </div>
+        <div class="developer-info">
+            <span>Built by <strong>Shailesh Kumar Singh</strong></span>
+            <a href="https://www.linkedin.com/in/shaileshkumarsingh1/" target="_blank" style="color: #64b5f6; margin-left: 10px; text-decoration: none;">🔗 LinkedIn</a>
+        </div>
+    </header>
+
+    <main class="main-container" id="mainContainer">
+
+        <div class="search-container">
+            <form class="search-box" id="searchForm">
+                <input type="text" class="search-input" id="searchInput" 
+                       placeholder="Ask about oil prices, OPEC, drilling, companies..." 
+                       autocomplete="off">
+                <button type="button" class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear">✕</button>
+                <button type="submit" class="search-btn">Search</button>
+            </form>
+        </div>
+
+        <div class="examples" id="examples">
+            <p>Try searching for:</p>
+            <div class="example-tags">
+                <span class="example-tag" onclick="search('Brent crude oil price today')">Oil Prices</span>
+                <span class="example-tag" onclick="search('OPEC production cuts')">OPEC</span>
+                <span class="example-tag" onclick="search('offshore drilling news')">Offshore Drilling</span>
+                <span class="example-tag" onclick="search('Russia oil sanctions')">Russia Sanctions</span>
+                <span class="example-tag" onclick="search('natural gas LNG exports')">LNG & Natural Gas</span>
+                <span class="example-tag" onclick="search('oil company mergers acquisitions')">M&A Deals</span>
+                <span class="example-tag" onclick="search('Middle East oil production')">Middle East</span>
+                <span class="example-tag" onclick="search('US shale production')">US Shale</span>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching articles...</p>
+        </div>
+
+        <div class="results-container" id="resultsContainer"></div>
+    </main>
+
+    <footer class="footer">
+        <p>A Machine Learning Project by <strong>Shailesh Kumar Singh</strong> | <a href="mailto:shaileshed@gmail.com" style="color: #64b5f6;">shaileshed@gmail.com</a> | <a href="https://www.linkedin.com/in/shaileshkumarsingh1/" target="_blank" style="color: #64b5f6;">LinkedIn</a></p>
+    </footer>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const loading = document.getElementById('loading');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const examples = document.getElementById('examples');
+        const mainContainer = document.getElementById('mainContainer');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Show/hide clear button based on input
+        searchInput.addEventListener('input', function() {
+            if (searchInput.value.length > 0) {
+                clearBtn.classList.add('show');
+            } else {
+                clearBtn.classList.remove('show');
+            }
+        });
+
+        function clearSearch() {
+            searchInput.value = '';
+            clearBtn.classList.remove('show');
+            resultsContainer.innerHTML = '';
+            examples.style.display = 'block';
+            mainContainer.classList.remove('has-results');
+            searchInput.focus();
+        }
+
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) {
+                performSearch(query);
+            }
+        });
+
+        function search(query) {
+            searchInput.value = query;
+            clearBtn.classList.add('show');
+            performSearch(query);
+        }
+
+        async function performSearch(query) {
+            // Show loading
+            loading.classList.add('show');
+            resultsContainer.innerHTML = '';
+            examples.style.display = 'none';
+            mainContainer.classList.add('has-results');
+
+            try {
+                const formData = new FormData();
+                formData.append('query', query);
+
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                loading.classList.remove('show');
+
+                if (data.error) {
+                    resultsContainer.innerHTML = `
+                        <div class="no-results">
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (!data.success) {
+                    resultsContainer.innerHTML = `
+                        <div class="no-results">
+                            ${data.message}
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Display results
+                let html = '';
+                
+                if (data.topic) {
+                    html += `<div class="topic-badge">Topic: ${data.topic.toUpperCase()} (${data.topic_confidence})</div>`;
+                }
+
+                data.results.forEach((result, index) => {
+                    const recentBadge = result.is_recent ? '<span class="recent-badge">RECENT</span>' : '';
+                    
+                    html += `
+                        <div class="result-card">
+                            <div class="result-header">
+                                <div>
+                                    <span class="result-source">${result.source}</span>
+                                    <span class="result-meta"> | ${result.date}</span>
+                                    ${recentBadge}
+                                </div>
+                                <span class="result-relevance">
+                                    ${result.relevance} match
+                                    ${result.recency_boost ? ` <span class="boost-tag" title="Most recent article">(${result.recency_boost} recent)</span>` : ''}
+                                    ${result.keyword_boost ? ` <span class="boost-tag" title="Keyword matches">(${result.keyword_boost} keywords)</span>` : ''}
+                                </span>
+                            </div>
+                            
+                            ${result.direct_answer ? `
+                                <div class="direct-answer">
+                                    ${result.direct_answer}
+                                </div>
+                            ` : ''}
+                            
+                            ${result.facts && result.facts.length > 0 ? `
+                                <div class="facts-list">
+                                    <h4>Key Facts:</h4>
+                                    <ul>
+                                        ${result.facts.map(f => `<li>${f}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${result.summary ? `
+                                <p class="result-summary">${result.summary}</p>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                resultsContainer.innerHTML = html;
+
+            } catch (error) {
+                loading.classList.remove('show');
+                resultsContainer.innerHTML = `
+                    <div class="no-results">
+                        <strong>Error:</strong> Failed to connect to server
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
